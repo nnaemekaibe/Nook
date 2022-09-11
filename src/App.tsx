@@ -1,33 +1,34 @@
 import "./styles.css";
-const data = {
-  notes: [
-    {
-      point: `Create an Application class and annotate it with @HiltAndroidApp. This
-    creates a component that’s attached to the Apps lifecycle and it acts
-    as dependencies container and provides the deps to the App and its
-    children components.`
-    },
-    {
-      point: `Activities, Fragment, View, Service, BroadcastReceiver are annotated with @AndroidEntryPoint. Hilt generates a container/component for each one with the annotated classes, and provides deps to them.`
-    }
-  ]
-};
-
-type CardProps = {
-  point: string;
-};
+import { useEffect, useState } from "react";
+import * as dotenv from 'dotenv'
+import Card from './ui/Cards'
+import {getPageBlocks} from './repository/notes.respository';
+dotenv.config()
 
 export default function App() {
-  const Card = (props: CardProps) => {
-    const { point } = props;
-    return (
-      <div className="Card w-80 rounded flex-none dark:bg-slate-800 m-4 p-8 first:ml-4 last:mr-4">
-        <p className="text text-slate-400 text-left text-base font-body leading-relaxed">
-          {point}
-        </p>
-      </div>
-    );
-  };
+  
+  const [pageBlocks, setPageBlocks] = useState<any>({})
+  
+  useEffect(()=>{
+    //get the blocks for the page
+    const getData = async ()=>{
+      const res = await getPageBlocks()
+      setPageBlocks(res.data)
+    }
+    getData();
+  },[])
+
+  const getCards = (pageBlocks: any) =>{
+    return pageBlocks?.results
+      ?.filter((block: any)=> ['bulleted_list_item', 'paragraph']?.some((type)=> block.type == type))
+      ?.filter((block: any)=>{
+        if(block.type === 'paragraph') return block.paragraph?.rich_text.length > 0
+        if(block.type === 'bulleted_list_item') return block.bulleted_list_item?.rich_text.length > 0
+      })
+      ?.map((block:any, index:number) => {
+        return <Card block={block} key={index} />
+      })
+  }
 
   return (
     <div className="App bg-white">
@@ -37,34 +38,10 @@ export default function App() {
       <div className="relative rounded-xl overflow-auto">
         <div className="max-w-md mx-auto  shadow-xl min-w-0 p-10">
           <div className="overflow-x-auto flex">
-            {data.notes.map((note) => (
-              <Card point={note.point} />
-            ))}
+            {getCards(pageBlocks)}
           </div>
         </div>
       </div>
-      {/* <div classNameName="absolute inset-0 pointer-events-none border border-black/5 rounded-xl dark:border-white/5"></div> */}
-      {/* <div classNameName="cards-container bg-red-300 flex flex-row flex-nowrap overflow-auto">
-        <div classNameName="w-56 h-56 bg-red-400 mx-8"></div>
-        <div classNameName="w-56 h-56 bg-red-400 mx-8"></div> */}
-
-      {/* <div classNameName="Card p-8">
-          <p classNameName="text">
-            Create an Application className and annotate it with @HiltAndroidApp.
-            This creates a component that’s attached to the Apps lifecycle and
-            it acts as dependencies container and provides the deps to the App
-            and its children components.
-          </p>
-        </div>
-        <div classNameName="Card">
-          <p classNameName="text">
-            Create an Application className and annotate it with @HiltAndroidApp.
-            This creates a component that’s attached to the Apps lifecycle and
-            it acts as dependencies container and provides the deps to the App
-            and its children components.
-          </p>
-        </div> */}
-      {/* </div> */}
     </div>
   );
 }
