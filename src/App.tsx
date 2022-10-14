@@ -2,11 +2,12 @@ import "./styles.css";
 import { Children, useEffect, useState } from "react";
 import Card from './ui/Cards'
 import {getEverythingAvailableToBot, getPageBlocks} from './repository/notes.respository';
-import {Router, Link, useLocation} from '@reach/router';
+import {Router, Link, useLocation, useNavigate} from '@reach/router';
 import logo from './assets/logo.svg'
 import searchIcon from './assets/search.svg'
 import downIcon from './assets/down.svg'
 import eyeIcon from './assets/eye.svg'
+import backIcon from './assets/back.svg'
 
 type ContextType = { pages: any, getCards: any, pageBlocks:any };
 
@@ -60,12 +61,17 @@ export default function App({children}: any) {
 
 
 interface LocationState {
-  title: string
+  title: string,
+  color: string,
 }
 
 export const Page = (props: any)=>{
   const [pageBlocks, setPageBlocks] = useState<any>({})
   const {pages, id} = props
+  const location = useLocation();
+  const navigate = useNavigate();
+  let color = (location.state as LocationState).color
+
   
   const getCards = (pageBlocks: any) =>{
     return pageBlocks?.results
@@ -75,11 +81,10 @@ export const Page = (props: any)=>{
         if(block.type === 'bulleted_list_item') return block.bulleted_list_item?.rich_text.length > 0
       })
       ?.map((block:any, index:number) => {
-        return <Card block={block} key={index} />
+        return <Card block={block} key={index} color={color} />
       })
   }
   
-  const location = useLocation();
   
   useEffect(()=>{
     if(id){
@@ -90,29 +95,71 @@ export const Page = (props: any)=>{
       get()
     }
   },[])
-  return(
-    <>
-      <h1 className="topic text text-slate-300 text-left text-4xl font-body leading-tight">
-        {(location.state as LocationState).title}
-      </h1>
-      <div className="relative rounded-xl overflow-auto">
-        <div className="max-w-md mx-auto  shadow-xl min-w-0 p-10">
+
+  const Header = ()=>{ 
+    let title = (location.state as LocationState).title
+    //TODO: IF ITS MORE THAT 1 WORD, BREAK AFTER THE FIRST WORD.
+    let firstWord, otherWords;
+
+    if (title.length > 1){
+      firstWord = title.split(' ').slice(0, 1)
+      otherWords = title.split(' ').slice(1).join(' ')
+      console.log(firstWord)
+      console.log(otherWords)
+    }
+    // if (title.split(" ").length > 1){
+    //   const titleArray = title.split(' ');
+    //   console.log(titleArray[0])
+    //   console.log(titleArray.slice(1))
+    //   const newTitle = [titleArray[0], "\n\n", ...titleArray.slice(1)]
+    //   console.log(newTitle)
+    //   title = newTitle.join(" ")
+    //   console.log(title, 'xddd')
+    // }
+    return (
+      <>
+        <div className="w-full flex justify-start">
+          <div className="w-12 h-full flex items-center">
+            <button onClick={()=> navigate(-1)}>
+              <img src={backIcon} alt="back" className="w-6 h-6"/>
+            </button>
+          </div>
+          <h1 className="topic text text-white/[.67] text-left text-3xl font-body leading-tight flex-wrap">
+            {firstWord}<br/>
+            {otherWords}
+          </h1>
+        </div>
+      </>
+    )
+  }
+  const Body = ()=>{
+    return(
+      <div className="flex flex-col h-full justify-center">
+        <div className="relative rounded-xl overflow-auto">
+        <div className="max-w-md mx-auto  shadow-xl min-w-0">
           <div className="overflow-x-auto flex">
             {pageBlocks && getCards(pageBlocks)}
           </div>
         </div>
       </div>
-    </>
-  )
+      </div>
+    )
+  }
+
+  return (<div className="w-full h-full">
+    <LinearLayout
+      body={<Body/>}
+      header={<Header/>}
+      borderBottomOpacity={0}
+    />
+  </div>)
 }
 
-export const Home = (props: any) => {
-  const {pages, subjectIdTitleMap} = props
 
   const LinearLayout = (props: any) =>{
-    const {body, header} = props
+    const {body, header, borderBottomOpacity} = props
     return (<div className="w-full h-ful flex flex-col bg-primary">
-      <header className="w-full h-24 max-h-24 p-4 pb-2 border-b-slate-50 border-b bg-primary flex flex-col justify-between">
+      <header className={`w-full h-24 max-h-24 p-4 pb-2 border-b-white/${borderBottomOpacity == 0 ? 0 : 70} border-b bg-primary flex flex-col justify-between`}>
         {header}
       </header>
       <main className="w-full h-[calc(100vh_-_96px)] bg-primary p-4 overflow-y-scroll">
@@ -121,9 +168,12 @@ export const Home = (props: any) => {
     </div>)
   }
 
+
+export const Home = (props: any) => {
+  const {pages, subjectIdTitleMap} = props
   const TopicListItem = ({topic, lastViewed, color, id}: any)=>{
     const {plain_text} = topic .title[0]
-    let state: LocationState = {title: plain_text}
+    let state: LocationState = {title: plain_text, color}
     return(
       <Link to={`/page/${id}`} state={state} >
         <div className={`w-full h-16 rounded bg-[${color}] px-3 py-4 box-border text-start pt-2`}>
