@@ -1,28 +1,12 @@
 import { StrictMode } from "react";
-import * as ReactDOMClient from "react-dom/client";
-import {
-  BrowserRouter,
-  Routes,
-  Route,
-} from "react-router-dom";
-
-import App from "./App";
-import {Home, Page} from './App'
+import {render} from "react-dom";
+import App, { Home, Page } from "./App";
+import {Router, Link, useLocation} from '@reach/router';
 
 const rootElement = document.getElementById("root");
-const root = ReactDOMClient.createRoot(rootElement);
 
-root.render(
+render(
   <StrictMode>
-    <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<App />}>
-            <Route index element={<Home />} />
-            <Route path="page" element={<Page />}>
-              <Route path=":id" element={<Page />} />
-            </Route>
-          </Route>
-        </Routes>
-      </BrowserRouter>
-  </StrictMode>
+    <App/>
+  </StrictMode>, rootElement
 );
