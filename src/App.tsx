@@ -1,12 +1,12 @@
 import "./styles.css";
-import { useEffect, useState } from "react";
+import { Children, useEffect, useState } from "react";
 import Card from './ui/Cards'
 import {getEverythingAvailableToBot, getPageBlocks} from './repository/notes.respository';
-import { Outlet, Link, useOutletContext, useParams, useLocation, useSearchParams, useMatch} from "react-router-dom";
+import {Router, Link, useLocation} from '@reach/router';
 
 type ContextType = { pages: any, getCards: any, pageBlocks:any };
 
-export default function App() {
+export default function App({children}: any) {
   
   const [pageBlocks, setPageBlocks] = useState<any>({})
   const [pages, setPages] = useState<any>()
@@ -27,7 +27,6 @@ export default function App() {
   useEffect(()=>{
     const getEverything = async () =>{
       const res = await getEverythingAvailableToBot()
-      // console.log({res})
       // console.log({res: res.data})
       const {results, type, object} = res.data
       if((object === 'list') && (type === 'page_or_database') && (results.length > 0)){
@@ -59,7 +58,10 @@ export default function App() {
   
   return (
     <div className="App bg-white">
-      <Outlet context={{pages}}/>
+      <Router>
+          <Home path="/" pages={pages}/>
+          <Page path="page/:id" pages={pages}/>
+      </Router>
     </div>
   );
 }
@@ -71,7 +73,7 @@ interface LocationState {
 
 export const Page = (props: any)=>{
   const [pageBlocks, setPageBlocks] = useState<any>({})
-  const {pages} = useProps()
+  const {pages, id} = props
   
   console.log({pages})
   const getCards = (pageBlocks: any) =>{
@@ -86,7 +88,6 @@ export const Page = (props: any)=>{
       })
   }
   
-  const {id} = useParams();
   const location = useLocation();
   
   useEffect(()=>{
@@ -98,7 +99,7 @@ export const Page = (props: any)=>{
       }
       get()
     }
-  })
+  },[])
   return(
     <>
       <h1 className="topic text text-slate-300 text-left text-4xl font-body leading-tight">
@@ -116,7 +117,7 @@ export const Page = (props: any)=>{
 }
 
 export const Home = (props: any) => {
-  const {pages} = useProps()
+  const {pages} = props
   return(
     <>
     {pages
@@ -140,6 +141,3 @@ export const Home = (props: any) => {
   
   }
   
-export function useProps() {
-  return useOutletContext<ContextType>();
-}
