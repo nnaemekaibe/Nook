@@ -212,7 +212,7 @@ export const Home = (props: any) => {
             }
           }
           const subjectTitle = subjectIdTitleMap[subject]
-          return <Subject topics={topicsMap} color={colors[j]} title={subjectTitle.toUpperCase()}/>
+          return <Subject key={subject} topics={topicsMap} color={colors[j]} title={subjectTitle.toUpperCase()}/>
         })}
       </div>
     )
