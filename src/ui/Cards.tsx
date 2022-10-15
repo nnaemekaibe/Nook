@@ -1,10 +1,11 @@
 type CardProps = {
   point?: any[];
   block: any
+  color: string,
 };
 
 const Card = (props: CardProps) => {
-    const { block:{has_children, childBlock, paragraph, bulleted_list_item} } = props;
+    const { block:{has_children, childBlock, paragraph, bulleted_list_item}, color } = props;
     let texts;
     let lists;
     
@@ -72,7 +73,7 @@ const Card = (props: CardProps) => {
       }
     }
     return (
-      <div className="Card w-80 rounded h-fit flex-none dark:bg-slate-800 m-4 p-8 first:ml-4 last:mr-4">
+      <div className={`Card w-80 rounded h-[380px] flex-none dark:bg-[${color}] m-4 p-8 first:ml-4 last:mr-4`}>
           {lists}
           {texts}
       </div>
